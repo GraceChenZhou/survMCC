@@ -1,5 +1,5 @@
 library(testthat)
-library(mcc)
+library(survMCC)
 
 # 1. Define a robust dataset at the top including a grouping factor
 mydata <- data.frame(

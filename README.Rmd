@@ -35,7 +35,7 @@ You can install the development version of the package directly from GitHub:
 # Install devtools if you haven't already
 # install.packages("devtools")
 
-devtools::install_github("GraceChenZhou/mcc")
+devtools::install_github("GraceChenZhou/survMCC")
 ```
 
 ### From Local Source Tarball
@@ -43,7 +43,7 @@ devtools::install_github("GraceChenZhou/mcc")
 If you received the compiled source package (`.tar.gz`), install it locally using:
 
 ```r
-install.packages("path/to/mcc_0.x.0.tar.gz", repos = NULL, type = "source")
+install.packages("path/to/survMCC_0.x.0.tar.gz", repos = NULL, type = "source")
 ```
 
 # Dependencies
@@ -55,10 +55,10 @@ To maintain mathematical accuracy when computing weights for left‑truncated da
 The primary function is `mcc()`. It evaluates unstratified cohorts or handles group stratification natively while providing convenient S3 methods for reporting and extracting your data. The package also exports `simulate_subject()` for generating one synthetic subject and `simulate_mcc_data()` for reproducible multi-group examples. For demonstration purposes, only 100 bootstrap iterations (niter = 100) are used to reduce computation time. For actual statistical analyses, a larger number of bootstrap iterations (e.g., niter = 1000 or more) is recommended to obtain more stable confidence interval estimates.
 
 ```{r simulation-and-estimation}
-library(mcc)
+library(survMCC)
 
 ## 1. Simulate recurrent-event data for 300 subjects (150 per group)
-# simulate_mcc_data() is included in the mcc package.
+# simulate_mcc_data() is included in the survMCC package.
 # It generates zero or more recurrent events per subject and one terminal
 # censoring/competing-event row, with optional delayed entry.
 mydata <- simulate_mcc_data(
@@ -84,7 +84,7 @@ head(mydata)
 result <- mcc(id = mydata$id, 
               time = mydata$time, 
               status = mydata$status, 
-              Tstart = mydata$tstart,
+              Tstart = mydata$Tstart,
               group = mydata$group,
               ci = TRUE, 
               niter = 100, 
@@ -264,7 +264,7 @@ mydata <- simulate_mcc_data(
   seed = 2026
 )
 
-# Preview the first five subject
+# Preview the first five subjects
 first_5_ids <- unique(mydata$id)[1:5]
 mydata_5 <- mydata[mydata$id %in% first_5_ids, ]
 print(mydata_5)

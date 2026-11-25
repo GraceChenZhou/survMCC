@@ -26,7 +26,7 @@ GitHub:
 # Install devtools if you haven't already
 # install.packages("devtools")
 
-devtools::install_github("GraceChenZhou/mcc")
+devtools::install_github("GraceChenZhou/survMCC")
 ```
 
 ### From Local Source Tarball
@@ -35,7 +35,7 @@ If you received the compiled source package (`.tar.gz`), install it
 locally using:
 
 ``` r
-install.packages("path/to/mcc_0.x.0.tar.gz", repos = NULL, type = "source")
+install.packages("path/to/survMCC_0.x.0.tar.gz", repos = NULL, type = "source")
 ```
 
 # Dependencies
@@ -57,10 +57,10 @@ larger number of bootstrap iterations (e.g., niter = 1000 or more) is
 recommended to obtain more stable confidence interval estimates.
 
 ``` r
-library(mcc)
+library(survMCC)
 
 ## 1. Simulate recurrent-event data for 300 subjects (150 per group)
-# simulate_mcc_data() is included in the mcc package.
+# simulate_mcc_data() is included in the survMCC package.
 # It generates zero or more recurrent events per subject and one terminal
 # censoring/competing-event row, with optional delayed entry.
 mydata <- simulate_mcc_data(
@@ -97,7 +97,7 @@ head(mydata)
 result <- mcc(id = mydata$id, 
               time = mydata$time, 
               status = mydata$status, 
-              Tstart = mydata$tstart,
+              Tstart = mydata$Tstart,
               group = mydata$group,
               ci = TRUE, 
               niter = 100, 
@@ -107,14 +107,14 @@ result <- mcc(id = mydata$id,
 estimates_df <- as.data.frame(result)
 head(estimates_df)
 #> # A tibble: 6 × 5
-#>   group  time     MCC     lci    uci
-#>   <chr> <dbl>   <dbl>   <dbl>  <dbl>
-#> 1 A     0.178 0.00667 0       0.0233
-#> 2 A     0.193 0.0133  0       0.0333
-#> 3 A     0.422 0.02    0       0.0433
-#> 4 A     0.480 0.02    0       0.0433
-#> 5 A     0.497 0.0267  0.00667 0.0501
-#> 6 A     0.632 0.0334  0.00667 0.0601
+#>   group  time    MCC    lci   uci
+#>   <chr> <dbl>  <dbl>  <dbl> <dbl>
+#> 1 A     0.178 0.0526 0      0.146
+#> 2 A     0.193 0.102  0      0.250
+#> 3 A     0.422 0.125  0      0.269
+#> 4 A     0.480 0.125  0      0.269
+#> 5 A     0.497 0.146  0.0213 0.291
+#> 6 A     0.632 0.164  0.0265 0.308
 ```
 
 To display a concise numerical summary at selected time points:
@@ -124,10 +124,10 @@ summary(result, times = c(2, 4, 6, 8))
 #> Mean Cumulative Count (MCC) Summary
 #> =============================================
 #>  time       MCC_A (95% CI)       MCC_B (95% CI)
-#>     2 0.258 (0.180, 0.342) 0.328 (0.235, 0.428)
-#>     4 0.639 (0.521, 0.807) 1.077 (0.917, 1.250)
-#>     6 0.994 (0.827, 1.159) 1.849 (1.685, 2.029)
-#>     8 1.391 (1.216, 1.568) 2.376 (2.127, 2.639)
+#>     2 0.451 (0.301, 0.592) 0.525 (0.390, 0.658)
+#>     4 0.780 (0.597, 1.001) 1.161 (0.996, 1.317)
+#>     6 1.088 (0.907, 1.284) 1.866 (1.684, 2.052)
+#>     8 1.458 (1.282, 1.646) 2.372 (2.131, 2.625)
 ```
 
 # Plotting MCC Curves and Number-at-Risk Tables
@@ -361,7 +361,7 @@ mydata <- simulate_mcc_data(
   seed = 2026
 )
 
-# Preview the first five subject
+# Preview the first five subjects
 first_5_ids <- unique(mydata$id)[1:5]
 mydata_5 <- mydata[mydata$id %in% first_5_ids, ]
 print(mydata_5)

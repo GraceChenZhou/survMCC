@@ -3,3 +3,4 @@
 ^\.github$
 ^github_mcc\.Rproj$
 ^code\.R$
+^README\.Rmd$

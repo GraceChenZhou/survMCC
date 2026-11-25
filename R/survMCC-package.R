@@ -1,7 +1,7 @@
 #' Mean Cumulative Count for Left-Truncated Competing Risks Data
 #'
 #' @description
-#' The \code{mcc} package provides a robust computational framework to estimate
+#' The \code{survMCC} package provides a robust computational framework to estimate
 #' the cumulative burden of recurrent events over long-term cohort follow-up
 #' timelines, accounting safely for competing risks and left-truncation.
 #'

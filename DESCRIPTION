@@ -1,4 +1,4 @@
-Package: mcc
+Package: survMCC
 Type: Package
 Title: Mean Cumulative Count for Left-Truncated Competing Risks Data
 Version: 0.2.0
