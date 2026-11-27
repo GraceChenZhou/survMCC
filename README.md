@@ -9,7 +9,7 @@ the Mean Cumulative Count (MCC) method.
 
 Building on the Dong–Yasui MCC framework of [Dong et
 al. (2015)](https://doi.org/10.1093/aje/kwu289), in which the MCC
-estimator can be expressed as the cumulative sum of incidence functions
+estimator can be expressed as the sum of cumulative incidence functions
 across successive event occurrences, **survMCC** is specifically
 designed to handle complex longitudinal survival data, accurately
 applying time-dependent censoring and truncation weights for

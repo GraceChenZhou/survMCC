@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 
 The **survMCC** R package provides a robust and efficient tool to estimate the total burden of recurrent events within a population using the Mean Cumulative Count (MCC) method.
 
-Building on the Dong–Yasui MCC framework of [Dong et al. (2015)](https://doi.org/10.1093/aje/kwu289), in which the MCC estimator can be expressed as the cumulative sum of incidence functions across successive event occurrences, **survMCC** is specifically designed to handle complex longitudinal survival data, accurately applying time-dependent censoring and truncation weights for left-truncated data in the presence of competing risks. The weighting procedure implements an optimized [Geskus (2011)](https://onlinelibrary.wiley.com/doi/full/10.1111/j.1541-0420.2010.01420.x) approach, making the package well suited for complex, long-term cohort studies.
+Building on the Dong–Yasui MCC framework of [Dong et al. (2015)](https://doi.org/10.1093/aje/kwu289), in which the MCC estimator can be expressed as the sum of cumulative incidence functions across successive event occurrences, **survMCC** is specifically designed to handle complex longitudinal survival data, accurately applying time-dependent censoring and truncation weights for left-truncated data in the presence of competing risks. The weighting procedure implements an optimized [Geskus (2011)](https://onlinelibrary.wiley.com/doi/full/10.1111/j.1541-0420.2010.01420.x) approach, making the package well suited for complex, long-term cohort studies.
 
 ## Installation
 
