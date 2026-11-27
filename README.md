@@ -1,21 +1,25 @@
 
-# mcc: Mean Cumulative Count for Left-Truncated Competing Risks Data
+# survMCC: Mean Cumulative Count for Left-Truncated Competing Risks Data
 
-[![R-CMD-check](https://github.com/GraceChenZhou/mcc/actions/workflows/r.yml/badge.svg)](https://github.com/GraceChenZhou/mcc/actions/workflows/r.yml)
+[![R-CMD-check](https://github.com/GraceChenZhou/survMCC/actions/workflows/r.yml/badge.svg)](https://github.com/GraceChenZhou/survMCC/actions/workflows/r.yml)
 
-The **mcc** R package provides a robust and efficient tool to estimate
-the total burden of recurrent events within a population using the Mean
-Cumulative Count (MCC) method.
+The **survMCC** R package provides a robust and efficient tool to
+estimate the total burden of recurrent events within a population using
+the Mean Cumulative Count (MCC) method.
 
-It is specifically designed to handle complex longitudinal survival
-data, accurately applying time-dependent censoring and truncation
-weights for left-truncated data in the presence of competing risks. The
-methodology implements an optimized [Geskus
+Building on the Dong–Yasui MCC framework of [Dong et
+al. (2015)](https://doi.org/10.1093/aje/kwu289), in which the MCC
+estimator can be expressed as the cumulative sum of incidence functions
+across successive event occurrences, **survMCC** is specifically
+designed to handle complex longitudinal survival data, accurately
+applying time-dependent censoring and truncation weights for
+left-truncated data in the presence of competing risks. The weighting
+procedure implements an optimized [Geskus
 (2011)](https://onlinelibrary.wiley.com/doi/full/10.1111/j.1541-0420.2010.01420.x)
-weighting approach, making it highly suitable for complex, long-term
-cohort studies.
+approach, making the package well suited for complex, long-term cohort
+studies.
 
-# Installation
+## Installation
 
 ### From GitHub
 
@@ -38,25 +42,74 @@ locally using:
 install.packages("path/to/survMCC_0.x.0.tar.gz", repos = NULL, type = "source")
 ```
 
-# Dependencies
+## Dependencies
 
 To maintain mathematical accuracy when computing weights for
-left‑truncated data, this package requires **R version 4.4.0 or later**
+left-truncated data, this package requires **R version 4.4.0 or later**
 and **survival version 3.7-0 or later**.
 
-# Basic Usage
+## Input Data Format
+
+The function `mcc()` expects longitudinal recurrent-event data in **long
+format**, supplied as equal-length vectors (typically columns of a data
+frame) where each row corresponds to either a recurrent event or a
+subject’s terminal follow-up record.
+
+### Variables
+
+| Argument | Requirement | Type                          | Description                                                                                                                                          |
+|:---------|:------------|:------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `id`     | Required    | Numeric, character, or factor | Unique subject identifier. Subjects with recurrent events span multiple rows.                                                                        |
+| `time`   | Required    | Numeric                       | Observed time of each recurrent event, competing-risk event, or censoring.                                                                           |
+| `status` | Required    | Integer (`0`, `1`, `2`)       | Event indicator: `0` = censored, `1` = recurrent event of interest, `2` = competing-risk (terminal) event (e.g., death).                             |
+| `Tstart` | Optional    | Numeric                       | Left-truncation (delayed-entry) time on the same scale as `time` (e.g., age at study entry). Omit or set to `NULL` when there is no left truncation. |
+| `group`  | Optional    | Numeric, character, or factor | Stratification variable for group-specific MCC estimation. Omit or set to `NULL` for an overall (unstratified) analysis.                             |
+
+### Data Format Assumptions
+
+- **One terminal record per subject:** Every subject must have **exactly
+  one** observation-terminating row (`status = 0` for censoring or
+  `status = 2` for a competing risk) and zero or more recurrent-event
+  rows (`status = 1`).
+- **Consistent time scale and ordering:** `time` and `Tstart` must use
+  the same time scale (e.g., both in years since diagnosis or both in
+  attained age). All records should satisfy `Tstart < time` (or
+  `time > 0` without left truncation), with no recurrent events recorded
+  after a subject’s terminal time.
+- **Subject-level consistency:** `Tstart` and `group` must be constant
+  across all rows belonging to the same `id`.
+- **Complete, aligned vectors:** All supplied vectors must have the same
+  length and contain no missing (`NA`) values.
+
+### Example Structure
+
+``` text
+id  Tstart  time  status  group
+ 1     0.5   4.2       0      A   # Censored with no recurrent events
+ 2     1.2   2.8       1      A   # 1st recurrent event
+ 2     1.2   5.1       1      A   # 2nd recurrent event
+ 2     1.2   8.0       0      A   # Censored at end of follow-up
+ 3     0.0   3.4       1      B   # 1st recurrent event
+ 3     0.0   6.7       2      B   # Competing-risk event (e.g., death)
+```
+
+## Basic Usage
 
 The primary function is `mcc()`. It evaluates unstratified cohorts or
 handles group stratification natively while providing convenient S3
 methods for reporting and extracting your data. The package also exports
 `simulate_subject()` for generating one synthetic subject and
-`simulate_mcc_data()` for reproducible multi-group examples. For
-demonstration purposes, only 100 bootstrap iterations (niter = 100) are
-used to reduce computation time. For actual statistical analyses, a
-larger number of bootstrap iterations (e.g., niter = 1000 or more) is
-recommended to obtain more stable confidence interval estimates.
+`simulate_mcc_data()` for reproducible multi-group examples (see
+[Simulation Assumptions and
+Reproducibility](#simulation-assumptions-and-reproducibility) for
+details). For demonstration purposes, only 100 bootstrap iterations
+(`niter = 100`) are used to reduce computation time. For actual
+statistical analyses, a larger number of bootstrap iterations (e.g.,
+`niter = 1000` or more) is recommended to obtain more stable confidence
+interval estimates.
 
 ``` r
+
 library(survMCC)
 
 ## 1. Simulate recurrent-event data for 300 subjects (150 per group)
@@ -93,16 +146,17 @@ head(mydata)
 
 ## 2. Run Stratified MCC with Bootstrap Confidence Intervals
 # Set ci = TRUE to compute bootstrap intervals
+result <- mcc(
+  id = mydata$id,
+  time = mydata$time,
+  status = mydata$status,
+  Tstart = mydata$Tstart,
+  group = mydata$group,
+  ci = TRUE,
+  niter = 100,
+  seed = 123
+)
 
-result <- mcc(id = mydata$id, 
-              time = mydata$time, 
-              status = mydata$status, 
-              Tstart = mydata$Tstart,
-              group = mydata$group,
-              ci = TRUE, 
-              niter = 100, 
-              seed = 123)
-                 
 ## 3. Extract numeric estimates
 estimates_df <- as.data.frame(result)
 head(estimates_df)
@@ -120,6 +174,7 @@ head(estimates_df)
 To display a concise numerical summary at selected time points:
 
 ``` r
+
 summary(result, times = c(2, 4, 6, 8))
 #> Mean Cumulative Count (MCC) Summary
 #> =============================================
@@ -130,7 +185,7 @@ summary(result, times = c(2, 4, 6, 8))
 #>     8 1.458 (1.282, 1.646) 2.372 (2.131, 2.625)
 ```
 
-# Plotting MCC Curves and Number-at-Risk Tables
+## Plotting MCC Curves and Number-at-Risk Tables
 
 The package provides two plotting interfaces built with **ggplot2** and
 **patchwork**. Group-specific MCC estimates are calculated directly by
@@ -139,6 +194,7 @@ combine their results:
 
 - `plot(result)` is the convenient S3 method for an object returned by
   `mcc()`. It displays the combined MCC curve and number-at-risk table.
+
 - `plot_mcc_with_risk_table(result)` provides the same display and
   returns the individual plot objects and underlying plotting data for
   further customization.
@@ -148,55 +204,58 @@ Usage**, fitted with `ci = TRUE` and stratified by groups A and B. The
 original analysis data are stored in the fitted `mcc` object, so you do
 not need to pass them again.
 
-## 1. Basic plot
+### 1. Basic plot
 
 ``` r
+
 # Display MCC step curves with bootstrap confidence ribbons and a risk table
 plot(result, risk_times = c(2, 4, 6, 8, 10))
 ```
 
-![](man/figures/README-basic-plot-1.png)<!-- -->
+<img src="man/figures/README-basic-plot-1.png" alt="" width="100%" />
 
 Confidence ribbons require confidence limits from an `mcc()` fit with
 `ci = TRUE`. For a fit with `ci = FALSE`, the function can still display
 MCC curves and a risk table without ribbons. The example above uses
 `niter = 100` for illustration.
 
-## 2. Highlight a control group and customize colors
+### 2. Highlight a control group and customize colors
 
 ``` r
+  
 plot(
-  result,
-  control_group = "A",       # Control is dashed by default
-  color_values = c(A = "#2166AC", B = "#B2182B"),
-  risk_times = c(2, 4, 6, 8, 10),
-  title = "Mean cumulative count by group",
-  xlab = "Follow-up time",
-  ylab = "Mean cumulative count",
-  legend.position = "right"
-)
+    result,
+    control_group = "A", # Control is dashed by default
+    color_values = c(A = "#2166AC", B = "#B2182B"),
+    risk_times = c(2, 4, 6, 8, 10),
+    title = "Mean cumulative count by group",
+    xlab = "Follow-up time",
+    ylab = "Mean cumulative count",
+    legend.position = "right"
+  )
 ```
 
-![](man/figures/README-control-colors-1.png)<!-- -->
+<img src="man/figures/README-control-colors-1.png" alt="" width="100%" />
 
 `color_values` and `line_values` are **named vectors indexed by the
 original group names**, not by the displayed legend labels. By default,
 the control group is represented by a dashed line, but this can be
-overridden by specifying a custom line type through line_values.
+overridden by specifying a custom line type through `line_values`.
 Additionally, users can customize the risk-table time points using the
-risk_times argument.
+`risk_times` argument.
 
 ``` r
+
 plot(
-  result,
-  control_group = "A",
-  line_values = c(A = "dotdash", B = "solid"),
-  palette = "Dark2",
-  risk_times = c(2, 6, 10)
-)
+    result,
+    control_group = "A",
+    line_values = c(A = "dotdash", B = "solid"),
+    palette = "Dark2",
+    risk_times = c(2, 6, 10)
+  )
 ```
 
-![](man/figures/README-control-line-types-1.png)<!-- -->
+<img src="man/figures/README-control-line-types-1.png" alt="" width="100%" />
 
 The risk table counts **distinct subjects**, not recurrent-event
 records. For left-truncated analyses, a subject is counted at time `t`
@@ -208,7 +267,7 @@ sets, not inverse-probability-weighted effective sample sizes.
 corresponding x-axis ticks. When omitted, the function chooses default
 time points based on the observed MCC time range.
 
-## 3. Choose the analysis time scale
+### 3. Choose the analysis time scale
 
 The `time` and `Tstart` inputs must use the **same time scale**. For an
 age-scale analysis, `time` is age at each event or competing risk or
@@ -218,49 +277,56 @@ below uses the simulated dataset on its generic follow-up time scale.
 ``` r
 
 fit_delayed <- mcc(
-  id = mydata$id, time = mydata$time, status = mydata$status,
-  Tstart = mydata$tstart, group = mydata$group
-)
+    id = mydata$id,
+    time = mydata$time,
+    status = mydata$status,
+    Tstart = mydata$Tstart,
+    group = mydata$group
+  )
+
 plot(fit_delayed, conf_int = FALSE, xlab = "Follow-up time")
 ```
 
-![](man/figures/README-delayed-entry-1.png)<!-- -->
+<img src="man/figures/README-delayed-entry-1.png" alt="" width="100%" />
 
-## 4. Customize themes, labels, and layout
+### 4. Customize themes, labels, and layout
 
 ``` r
+  
 plot(
-  result,
-  conf_alpha = 0.20,
-  ggtheme = ggplot2::theme_bw(),
-  tables.theme = ggplot2::theme_classic(),
-  title = "Recurrent-event burden over follow-up",
-  title_hjust = 0.5,
-  title_size = 15,
-  axis_label_size = 12,
-  axis_text_size = 10,
-  legend.title = "Study group",
-  legend.position = "right",
-  risk_table_title = "Number at risk",
-  risk_table_text_size = 3.5,
-  plot_heights = c(4, 1)
-)
+    result,
+    conf_alpha = 0.20,
+    ggtheme = ggplot2::theme_bw(),
+    tables.theme = ggplot2::theme_classic(),
+    title = "Recurrent-event burden over follow-up",
+    title_hjust = 0.5,
+    title_size = 15,
+    axis_label_size = 12,
+    axis_text_size = 10,
+    legend.title = "Study group",
+    legend.position = "right",
+    risk_table_title = "Number at risk",
+    risk_table_text_size = 3.5,
+    plot_heights = c(4, 1)
+  )
 ```
 
-![](man/figures/README-custom-layout-1.png)<!-- -->
+<img src="man/figures/README-custom-layout-1.png" alt="" width="100%" />
 
-## 5. Retrieve and reuse the plot components
+### 5. Retrieve and reuse the plot components
 
 Unlike `plot(result)`, the standalone function
-`plot_mcc_with_risk_table` returns a list of plot objects and data:
+`plot_mcc_with_risk_table()` returns a list of plot objects and data:
 
 ``` r
+  
 p <- plot_mcc_with_risk_table(
-  result,
-  control_group = "A",
-  risk_times = c(2, 4, 6, 8, 10)
-)
-
+    result,
+    control_group = "A",
+    risk_times = c(2, 4, 6, 8, 10)
+  )
+  
+  
 names(p)
 #> [1] "plot"       "p_mcc"      "p_risk"     "plot_data"  "risk_table"
 #> [6] "risk_times"
@@ -272,55 +338,59 @@ head(p$risk_table)
 #> 4     B    4    115          B            B
 #> 5     A    6    105          A  A (Control)
 #> 6     B    6     90          B            B
-
+  
 # Show the combined figure
+  
 p$plot
 ```
 
-![](man/figures/README-plot-components-1.png)<!-- -->
+<img src="man/figures/README-plot-components-1.png" alt="" width="100%" />
 
 ``` r
-
+  
 # Save the combined figure
 # ggplot2::ggsave("mcc_plot.png", plot = p$plot, width = 8, height = 6, dpi = 300)
 ```
 
-## 6. Plot an unstratified analysis
+### 6. Plot an unstratified analysis
 
 ``` r
+  
 result_overall <- mcc(
-  id = mydata$id,
-  time = mydata$time,
-  status = mydata$status,
-  Tstart = mydata$tstart,
-  ci = FALSE
-)
-
+    id = mydata$id,
+    time = mydata$time,
+    status = mydata$status,
+    Tstart = mydata$Tstart,
+    ci = FALSE
+  )
+  
 plot(result_overall, title = "Overall MCC")
 ```
 
-![](man/figures/README-unstratified-plot-1.png)<!-- -->
+<img src="man/figures/README-unstratified-plot-1.png" alt="" width="100%" />
 
 An unstratified fit displays one MCC curve and its corresponding
 risk-table row. If you already have a data frame of estimates rather
 than an `mcc` object, supply the original data explicitly:
 
 ``` r
+  
 p_df <- plot_mcc_with_risk_table(
-  as.data.frame(result),
-  data = result$data,
-  conf_int = TRUE
-)
-
+    as.data.frame(result),
+    data = result$data,
+    conf_int = TRUE
+  )
+  
+  
 p_df$plot
 ```
 
-![](man/figures/README-data-frame-plot-1.png)<!-- -->
+<img src="man/figures/README-data-frame-plot-1.png" alt="" width="100%" />
 
 For all plotting options, see `?plot_mcc_with_risk_table` and
 `?plot.mcc`.
 
-## Simulation assumptions and reproducibility
+## Simulation Assumptions and Reproducibility
 
 `simulate_subject()` models recurrent events as a homogeneous Poisson
 process after entry, with independent exponential competing-event and
@@ -333,6 +403,7 @@ argument makes the cohort reproducible without permanently changing the
 caller’s random-number-generator state.
 
 ``` r
+
 # Simulate one individual directly
 set.seed(2026)
 
@@ -352,8 +423,9 @@ one_subject
 ```
 
 ``` r
+
 # Simulate two groups with different recurrent-event rates
-mydata <- simulate_mcc_data(
+sim_data <- simulate_mcc_data(
   n_per_group = 100,
   event_rates = c(A = 0.22, B = 0.38),
   max_followup = 10,
@@ -362,9 +434,9 @@ mydata <- simulate_mcc_data(
 )
 
 # Preview the first five subjects
-first_5_ids <- unique(mydata$id)[1:5]
-mydata_5 <- mydata[mydata$id %in% first_5_ids, ]
-print(mydata_5)
+first_5_ids <- unique(sim_data$id)[1:5]
+sim_data_5 <- sim_data[sim_data$id %in% first_5_ids, ]
+print(sim_data_5)
 #>   id      time status    Tstart group
 #> 1  1  7.079862      0 1.3973469     A
 #> 2  2 10.000000      0 1.1130610     A
@@ -376,17 +448,13 @@ print(mydata_5)
 #> 8  5  9.700798      2 1.1107380     A
 
 # Number of unique subjects in each group
-table(
-  mydata$group[
-    !duplicated(mydata$id)
-  ]
-)
+table(sim_data$group[!duplicated(sim_data$id)])
 #> 
 #>   A   B 
 #> 100 100
 
 # Distribution of recurrent events, censoring, and competing risks
-table(mydata$group, mydata$status)
+table(sim_data$group, sim_data$status)
 #>    
 #>       0   1   2
 #>   A  77 143  23
@@ -395,3 +463,15 @@ table(mydata$group, mydata$status)
 
 For function arguments and return values, see `?simulate_subject` and
 `?simulate_mcc_data`.
+
+## References
+
+- Dong H, Robison LL, Leisenring WM, Martin LJ, Armstrong GT, Yasui Y.
+  (2015). Estimating the burden of recurrent events in the presence of
+  competing risks: the method of mean cumulative count. *American
+  Journal of Epidemiology*, 181(7), 532–540.
+  <https://doi.org/10.1093/aje/kwu289>
+- Geskus RB. (2011). Cause-specific cumulative incidence estimation and
+  the Fine and Gray model under both left truncation and right
+  censoring. *Biometrics*, 67(1), 39–49.
+  <https://doi.org/10.1111/j.1541-0420.2010.01420.x>
