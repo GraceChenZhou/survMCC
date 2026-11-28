@@ -2,34 +2,68 @@ Package: survMCC
 Type: Package
 Title: Mean Cumulative Count for Left-Truncated Competing Risks Data
 Version: 0.2.0
-Authors@R: person("Grace", "Zhou", 
-                  email = "grace.zhou@stjude.org", 
-                  role = c("aut", "cre", "cph"),
-                  comment = c(ORCID = "0000-0002-4084-9100"))
-Description: Estimates the total burden of recurrent events within a population 
-    using the Mean Cumulative Count (MCC) method. Specifically designed to handle 
-    left-truncated data in the presence of competing risks by applying 
-    time-dependent censoring and truncation weights, suitable for complex cohort 
-    studies like the Childhood Cancer Survivor Study (CCSS).
+Authors@R: c(
+    person(
+      "Grace", "Zhou",
+      email = "grace.zhou@stjude.org",
+      role = c("aut", "cre", "cph"),
+      comment = c(ORCID = "0000-0002-4084-9100")
+    ),
+    person(
+      "Qi", "Liu",
+      role = "aut"
+    ),
+    person(
+      "Chuyu", "Liu",
+      role = "aut"
+    ),
+    person(
+      "Kendrick", "Li",
+      role = "aut"
+    ),
+    person(
+      "Tushar", "Patni",
+      role = "aut"
+    ),
+    person(
+      "DeoKumar", "Srivastava",
+      role = "aut"
+    ),
+    person(
+      "Yutaka", "Yasui",
+      role = "aut"
+    ),
+    person(
+      "Sedigheh", "Mirzaei",
+      role = "aut"
+    )
+  )
+Description: Estimates the total burden of recurrent events within a population
+    using the Mean Cumulative Count (MCC) method described by Dong et al. (2015)
+    <doi:10.1093/aje/kwu289>. The package handles left-truncated data in the
+    presence of competing risks by applying time-dependent censoring and
+    truncation weights following Geskus (2011)
+    <doi:10.1111/j.1541-0420.2010.01420.x>, with bootstrap confidence intervals,
+    visualization with number-at-risk tables, and simulation utilities for
+    complex cohort studies.
 License: GPL (>= 3)
 Encoding: UTF-8
-LazyData: true
-Depends: 
+Depends:
     R (>= 4.4.0)
-Imports: 
+Imports:
     cmprsk,
     dplyr (>= 1.1.0),
+    future.apply (>= 1.8.1),
+    ggplot2,
+    patchwork,
     rlang,
     stats,
     survival (>= 3.7-0),
     tidyr,
-    zoo,
-    future.apply (>= 1.8.1),
-    ggplot2,
-    patchwork
-RoxygenNote: 7.3.3
-URL: https://github.com/gracechenzhou/mcc
-BugReports: https://github.com/gracechenzhou/mcc/issues
-Suggests: 
+    zoo
+Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+RoxygenNote: 7.3.3
+URL: https://github.com/GraceChenZhou/survMCC
+BugReports: https://github.com/GraceChenZhou/survMCC/issues

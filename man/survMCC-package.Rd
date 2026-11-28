@@ -13,13 +13,24 @@ timelines, accounting safely for competing risks and left-truncation.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/gracechenzhou/mcc}
-  \item Report bugs at \url{https://github.com/gracechenzhou/mcc/issues}
+  \item \url{https://github.com/GraceChenZhou/survMCC}
+  \item Report bugs at \url{https://github.com/GraceChenZhou/survMCC/issues}
 }
 
 }
 \author{
 \strong{Maintainer}: Grace Zhou \email{grace.zhou@stjude.org} (\href{https://orcid.org/0000-0002-4084-9100}{ORCID}) [copyright holder]
+
+Authors:
+\itemize{
+  \item Qi Liu
+  \item Chuyu Liu
+  \item Kendrick Li
+  \item Tushar Patni
+  \item DeoKumar Srivastava
+  \item Yutaka Yasui
+  \item Sedigheh Mirzaei
+}
 
 }
 \keyword{internal}

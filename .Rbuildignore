@@ -1,6 +1,8 @@
-^rmcc\.Rproj$
+^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
-^github_mcc\.Rproj$
+^\.Rhistory$
+^deprecated$
 ^code\.R$
 ^README\.Rmd$
+^cran-comments\.md$
